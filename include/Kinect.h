@@ -9,11 +9,13 @@
  * 
  */
 
+#include "KinectUtils.h"
+
 #include "k4a/k4a.hpp"
 
 #include <cstdint>
 #include <string>
-
+/*
 struct img_buf_t {
     std::time_t timestamp;
     uint32_t img_height;
@@ -34,7 +36,7 @@ struct imu_data_t {
     float gy_y;
     float gy_z;
 };
-
+*/
 class Kinect
 {
 private:
@@ -55,6 +57,7 @@ private:
     bool ReadSerialNumber();
 
     // TODO these should probably be in Kinect Utils, they are generic static functions
+    #if 0
     /**
      * @brief Extracts image data from kinect capture type
      * 
@@ -62,8 +65,16 @@ private:
      * @return img_buf_t a generic image buffer for passing image data
      */
     img_buf_t ExtractColourImg(k4a_capture_t capture);
-    img_buf_t ExtractDepthImg(k4a_capture_t capture);
+    img_buf_t ExtractRawDepthImg(k4a_capture_t capture);
     img_buf_t ExtractIrImg(k4a_capture_t capture);
+    #endif
+    /**
+     * @brief creates a pair of images one being colour and the other being the GT depth measured
+     * 
+     * @param capture The capture type provided by Kinect SDK
+     * @return std::pair<img_buf_t, img_buf_t> First Image buffer is Colour second is Depth
+     */
+    std::pair<img_buf_t, img_buf_t> ExtractColourWithDepthGT(k4a_capture_t capture);
     /**
      * @brief 
      * 
@@ -71,6 +82,14 @@ private:
      * @return imu_data_t a generic data structure for accelerometer and gyro data
      */
     imu_data_t ExtractIMUData(k4a_imu_sample_t imu_sample);
+
+    /**
+     * @brief Creates Depth image from Colour Sensor perspective, creating Ground Truth Depth Image
+     * 
+     * @param depth_img_raw raw depth image from Kinect
+     * @return k4a_image_t Kinect image type
+     */
+    k4a_image_t TransformDepthToColour(k4a_image_t depth_img_raw, int width, int height, int stride);
 
 public:
     Kinect(/* args */);
@@ -101,7 +120,7 @@ public:
      * @return false failed to read image
      */
     bool GetImages(img_buf_t &colour_img, int timeout_ms = 0);
-    bool GetImages(img_buf_t &colour_img, img_buf_t &depth_img, int timeout_ms = 0);
+    bool GetImages(img_buf_t &colour_img, img_buf_t &depth_img, int timeout_ms = 0, bool raw_depth = false);
     bool GetImages(img_buf_t &colour_img, img_buf_t &depth_img, img_buf_t &ir_img, int timeout_ms = 0);
 
     bool GetIMU(imu_data_t &data, int timeout_ms = 0);
